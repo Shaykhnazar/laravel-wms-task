@@ -1,0 +1,373 @@
+{
+  "info": {
+    "_postman_id": "158e7839-99c2-49d8-a359-0f67aa9f8a23",
+    "name": "Inventory Management API",
+    "description": "Test the 6 inventory API endpoints in order.\n\nPrerequisites:\n1. docker compose up --build\n2. Import Inventory-API.local.postman_environment.json\n3. Run requests top-to-bottom (later requests use IDs from earlier responses)\n\nSeeded demo data (ids after fresh seed):\n- provider_id: 1\n- storage_id: 1\n- client_id: 1\n- product_id: 1 (Earl Grey), 2 (Green Tea)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "53130318"
+  },
+  "item": [
+    {
+      "name": "0. Health check",
+      "item": [
+        {
+          "name": "GET /up",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/up",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "up"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "1. Purchase",
+      "item": [
+        {
+          "name": "POST /api/purchases — first batch",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"provider_id\": {{provider_id}},\n  \"storage_id\": {{storage_id}},\n  \"purchased_at\": \"2026-06-01T10:00:00Z\",\n  \"items\": [\n    {\n      \"product_id\": {{product_id}},\n      \"quantity\": 100,\n      \"purchase_price\": 12.50\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/purchases",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "purchases"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/purchases — older batch (FIFO test)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"provider_id\": {{provider_id}},\n  \"storage_id\": {{storage_id}},\n  \"purchased_at\": \"2026-05-01T10:00:00Z\",\n  \"items\": [\n    {\n      \"product_id\": {{product_id}},\n      \"quantity\": 50,\n      \"purchase_price\": 11.00\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/purchases",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "purchases"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/purchases — validation error (422)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"provider_id\": 9999,\n  \"storage_id\": {{storage_id}},\n  \"purchased_at\": \"2026-06-01T10:00:00Z\",\n  \"items\": []\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/purchases",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "purchases"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Available products",
+      "item": [
+        {
+          "name": "GET /api/products/available",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/products/available?per_page=10",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "products",
+                "available"
+              ],
+              "query": [
+                {
+                  "key": "per_page",
+                  "value": "10"
+                },
+                {
+                  "key": "page",
+                  "value": "1",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Orders FIFO",
+      "item": [
+        {
+          "name": "POST /api/orders — sell 30 units",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"client_id\": {{client_id}},\n  \"products\": [\n    {\n      \"id\": {{product_id}},\n      \"qty\": 30\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "POST /api/orders — insufficient stock (422)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"client_id\": {{client_id}},\n  \"products\": [\n    {\n      \"id\": {{product_id}},\n      \"qty\": 999999\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "orders"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Batch refund",
+      "item": [
+        {
+          "name": "POST /api/batches/{batch}/refunds",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refunded_at\": \"2026-06-15T12:00:00Z\",\n  \"items\": [\n    {\n      \"batch_item_id\": {{batch_item_id}},\n      \"quantity\": 10000\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/batches/{{batch_id}}/refunds",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "batches",
+                "{{batch_id}}",
+                "refunds"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. Reports",
+      "item": [
+        {
+          "name": "GET /api/storages/remaining?date=",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/storages/remaining?date=2026-06-30",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "storages",
+                "remaining"
+              ],
+              "query": [
+                {
+                  "key": "date",
+                  "value": "2026-06-30"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GET /api/batches/profit",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/batches/profit",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "batches",
+                "profit"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000"
+    },
+    {
+      "key": "provider_id",
+      "value": "1"
+    },
+    {
+      "key": "storage_id",
+      "value": "1"
+    },
+    {
+      "key": "client_id",
+      "value": "1"
+    },
+    {
+      "key": "product_id",
+      "value": "1"
+    },
+    {
+      "key": "product_id_2",
+      "value": "2"
+    },
+    {
+      "key": "batch_id",
+      "value": ""
+    },
+    {
+      "key": "batch_item_id",
+      "value": ""
+    },
+    {
+      "key": "order_id",
+      "value": ""
+    }
+  ]
+}
