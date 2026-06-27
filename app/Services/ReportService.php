@@ -3,16 +3,16 @@
 namespace App\Services;
 
 use App\Models\Product;
-use Illuminate\Support\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class ReportService
 {
     /**
      * Get products that have stock on hand, with total available quantity per product.
      *
-     * @return Collection<int, object>
+     * @return LengthAwarePaginator<int, Product>
      */
-    public function availableProducts(): Collection
+    public function availableProducts(int $perPage = 15): LengthAwarePaginator
     {
         return Product::query()
             ->select([
@@ -29,7 +29,7 @@ class ReportService
             })
             ->groupBy('products.id', 'products.name', 'products.price', 'categories.name')
             ->orderBy('products.name')
-            ->get();
+            ->paginate($perPage);
     }
 
 }
