@@ -5,15 +5,29 @@ if [ ! -f .env ]; then
   cp .env.example .env
 fi
 
-if [ -z "$APP_KEY" ] && ! grep -qE '^APP_KEY=base64:.+' .env 2>/dev/null; then
-  php artisan key:generate --force --no-interaction
+if [ -z "$APP_KEY" ] || ! echo "$APP_KEY" | grep -q 'base64:'; then
+  if ! grep -qE '^APP_KEY=base64:.+' .env 2>/dev/null; then
+    php artisan key:generate --force --no-interaction
+  fi
 fi
 
 echo "Waiting for MySQL..."
 attempt=0
 max_attempts=60
 while [ "$attempt" -lt "$max_attempts" ]; do
-  if php artisan db:show --no-interaction >/dev/null 2>&1; then
+  if php -r "
+    try {
+        new PDO(
+            'mysql:host=' . getenv('DB_HOST') . ';port=' . (getenv('DB_PORT') ?: '3306') . ';dbname=' . getenv('DB_DATABASE'),
+            getenv('DB_USERNAME'),
+            getenv('DB_PASSWORD'),
+            [PDO::ATTR_TIMEOUT => 2]
+        );
+        exit(0);
+    } catch (Throwable \$e) {
+        exit(1);
+    }
+  " 2>/dev/null; then
     echo "MySQL is ready."
     break
   fi
