@@ -21,4 +21,8 @@ class Provider extends Model
         return $this->hasMany(Category::class);
     }
 
+    public function batches(): HasMany
+    {
+        return $this->hasMany(Batch::class);
+    }
 }
