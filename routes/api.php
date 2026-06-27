@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\BatchProfitController;
 use App\Http\Controllers\Api\BatchRefundController;
 use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\PurchaseController;
@@ -12,3 +13,4 @@ Route::post('/batches/{batch}/refunds', [BatchRefundController::class, 'store'])
 Route::get('/products/available', [ProductController::class, 'available']);
 Route::post('/orders', [OrderController::class, 'store']);
 Route::get('/storages/remaining', [StorageReportController::class, 'remaining']);
+Route::get('/batches/profit', [BatchProfitController::class, 'index']);
